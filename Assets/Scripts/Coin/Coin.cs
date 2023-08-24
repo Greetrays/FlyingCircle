@@ -4,6 +4,12 @@ public class Coin : SpawnObject, ITriggerCollision
 {
     [SerializeField] private float _speed;
     [SerializeField] private float _triggerDistance;
+    [SerializeField] private TrailRenderer _trailRenderer;
+
+    private void OnEnable()
+    {
+
+    }
 
     private void Update()
     {
@@ -23,6 +29,7 @@ public class Coin : SpawnObject, ITriggerCollision
         if (collision.TryGetComponent(out GameOverTrigger trigger) || collision.TryGetComponent(out PlayerCoin player) )
         {
             gameObject.SetActive(false);
+            _trailRenderer.Clear();
         }
     }
 }

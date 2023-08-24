@@ -1,28 +1,49 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
-public class Pool : MonoBehaviour
+public class Pool<T> where T : MonoBehaviour
 {
-    [SerializeField] private int _capacity;
-    [SerializeField] private Transform _container;
+    private T _template;
+    private Transform _container;
+    private List<T> _pool = new List<T>();
 
-    private List<SpawnObject> _pool = new List<SpawnObject>();
-
-    protected void Init(SpawnObject template, PlayerCoin target)
+    public Pool(T template, Transform container)
     {
-        for (int i = 0; i < _capacity; i++)
-        {
-            SpawnObject newSpawnObject = Instantiate(template, _container);
-            newSpawnObject.SetTarget(target);
-            newSpawnObject.gameObject.SetActive(false);
-            _pool.Add(newSpawnObject);
-        }
+        _template = template;
+        _container = container;
     }
 
-    protected bool TryGetObject(out SpawnObject disableObject)
+    public T GetFreeElement()
     {
-        disableObject = _pool.FirstOrDefault(spawnObject => spawnObject.gameObject.activeSelf == false);
-        return disableObject != null;
+        if (HasFreeElement(out T element))
+        {
+            return element;
+        }
+
+        return CreateObject();
+    }
+
+    private bool HasFreeElement(out T element)
+    {
+        element = null;
+
+        foreach(T item in _pool)
+        {
+            if (item.gameObject.activeInHierarchy == false)
+            {
+                element = item;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private T CreateObject()
+    {
+        T obj = Object.Instantiate(_template, _container);
+        obj.gameObject.SetActive(false);
+        _pool.Add(obj);
+        return obj;
     }
 }

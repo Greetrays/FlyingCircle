@@ -1,7 +1,10 @@
 using UnityEngine;
 
-public class Spawner : Pool
+public class Spawner : MonoBehaviour
 {
+    private const int X = 1;
+    private const int Y = 1;
+
     [SerializeField] private SpawnObject _template;
     [SerializeField] private PlayerCoin _target;
     [SerializeField] private float _minDelay;
@@ -11,8 +14,10 @@ public class Spawner : Pool
     [SerializeField] Transform _topBorder;
     [SerializeField] Transform _bottomBorder;
     [SerializeField] private LevelSwitcher _levelSwither;
+
+    private Pool<SpawnObject> _poolGen;
     private int _level;
-    private float _positionScreenX => _camera.ViewportToWorldPoint(new Vector2(1, 1)).x;
+    private float _positionScreenX => _camera.ViewportToWorldPoint(new Vector2(X, Y)).x;
     private float _delay;
     private float _elapsedTime;
 
@@ -24,7 +29,7 @@ public class Spawner : Pool
     protected void Start()
     {
         _level = 1;
-        Init(_template, _target);
+        _poolGen = new Pool<SpawnObject>(_template, transform);
         _delay = Random.Range(_minDelay, _maxDelay);
     }
 
@@ -38,6 +43,7 @@ public class Spawner : Pool
         _elapsedTime += Time.deltaTime;
 
         if (_elapsedTime >= _delay)
+
         {
             _elapsedTime = 0;
             _delay = Random.Range(_minDelay, _maxDelay);
@@ -54,12 +60,11 @@ public class Spawner : Pool
     {
         for (int i = 0; i < _level; i++)
         {
-            if (TryGetObject(out SpawnObject spawnObject))
-            {
-                Vector2 randomPosition = new Vector2(_positionScreenX + i, Random.Range(_topBorder.position.y - _offset, _bottomBorder.position.y + _offset));
-                spawnObject.gameObject.SetActive(true);
-                spawnObject.transform.position = randomPosition;
-            }  
+            SpawnObject newSpawnObject = _poolGen.GetFreeElement();
+            newSpawnObject.SetTarget(_target);
+            Vector2 randomPosition = new Vector2(_positionScreenX + i, Random.Range(_topBorder.position.y - _offset, _bottomBorder.position.y + _offset));
+            newSpawnObject.gameObject.SetActive(true);
+            newSpawnObject.transform.position = randomPosition;
         }
     }
 }
